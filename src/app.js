@@ -2,6 +2,7 @@ import express from 'express';
 import handlebars from 'express-handlebars';
 import {Server} from 'socket.io';
 import mongoose from 'mongoose';
+import cookieParser from 'cookie-parser';
 
 import productRouter from './routes/productRouter.js';
 import cartRouter from './routes/cartRouter.js';
@@ -21,6 +22,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
+app.use(cookieParser());
 
 mongoose.connect("mongodb+srv://coderuser:coder1234@cluster0.94j5za2.mongodb.net/?appName=Cluster0")
   .then(() => console.log("MongoDB conectado"))

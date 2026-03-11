@@ -32,7 +32,16 @@ export const initializePassport = () => {
   passport.use("jwt",
     new JWTStrategy(
       {
-        jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),
+        jwtFromRequest: ExtractJWT.fromExtractors([
+          (req) => {
+            let token = null;
+            if (req && req.cookies) {
+                token = req.cookies.jwtCookie;
+            }
+            return token;
+          }
+        ]),
+        
         secretOrKey: "jwtSecret"
       },
       async (jwt_payload, done) => {
