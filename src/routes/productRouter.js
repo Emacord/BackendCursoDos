@@ -1,130 +1,75 @@
 import { Router } from 'express';
-import { productDBManager } from '../dao/productDBManager.js';
-import { uploader } from '../utils/multerUtil.js';
+
 import passport from "passport";
 
+import ProductRepository from '../repositories/product.repository.js';
+import ProductService from '../services/product.service.js';
+import ProductController from '../controllers/product.controller.js';
+
+import { productDBManager } from '../dao/productDBManager.js';
+import { authorization } from '../middlewares/authorization.js';
+
 const router = Router();
-const ProductService = new productDBManager();
+
+
+
+
+const productDAO = new productDBManager();
+
+
+const productRepository = new ProductRepository(productDAO);
+
+
+const productService = new ProductService(productRepository);
+
+
+const productController = new ProductController(productService);
 
 
 router.get(
   '/',
-  passport.authenticate('jwt', { session: false }),
-  async (req, res) => {
-    try {
-      const result = await ProductService.getAllProducts(req.query);
-
-      res.send({
-        status: 'success',
-        payload: result
-      });
-    } catch (error) {
-      res.status(500).send({
-        status: 'error',
-        message: error.message
-      });
-    }
-  }
+  passport.authenticate("jwt",{session:false}),
+  productController.getProducts
 );
+
+
+
 
 router.get(
   '/:pid',
-  passport.authenticate('jwt', { session: false }),
-  async (req, res) => {
-    try {
-      const result = await ProductService.getProductByID(req.params.pid);
-
-      res.send({
-        status: 'success',
-        payload: result
-      });
-    } catch (error) {
-      res.status(400).send({
-        status: 'error',
-        message: error.message
-      });
-    }
-  }
+  passport.authenticate("jwt",{session:false}),
+  productController.getProductById
 );
+
+
 
 
 router.post(
   '/',
-  passport.authenticate('jwt', { session: false }),
-  uploader.array('thumbnails', 3),
-  async (req, res) => {
-
-    if (req.files) {
-      req.body.thumbnails = [];
-      req.files.forEach(file => {
-        req.body.thumbnails.push(file.path);
-      });
-    }
-
-    try {
-      const result = await ProductService.createProduct(req.body);
-
-      res.send({
-        status: 'success',
-        payload: result
-      });
-    } catch (error) {
-      res.status(400).send({
-        status: 'error',
-        message: error.message
-      });
-    }
-  }
+  passport.authenticate("jwt",{session:false}),
+  authorization("admin"),
+  productController.createProduct
 );
+
+
 
 
 router.put(
   '/:pid',
-  passport.authenticate('jwt', { session: false }),
-  uploader.array('thumbnails', 3),
-  async (req, res) => {
-
-    if (req.files) {
-      req.body.thumbnails = [];
-      req.files.forEach(file => {
-        req.body.thumbnails.push(file.filename);
-      });
-    }
-
-    try {
-      const result = await ProductService.updateProduct(req.params.pid, req.body);
-
-      res.send({
-        status: 'success',
-        payload: result
-      });
-    } catch (error) {
-      res.status(400).send({
-        status: 'error',
-        message: error.message
-      });
-    }
-  }
+  passport.authenticate("jwt",{session:false}),
+  authorization("admin"),
+  productController.updateProduct
 );
+
+
 
 router.delete(
   '/:pid',
-  passport.authenticate('jwt', { session: false }),
-  async (req, res) => {
-    try {
-      const result = await ProductService.deleteProduct(req.params.pid);
-
-      res.send({
-        status: 'success',
-        payload: result
-      });
-    } catch (error) {
-      res.status(400).send({
-        status: 'error',
-        message: error.message
-      });
-    }
-  }
+  passport.authenticate("jwt",{session:false}),
+  authorization("admin"),
+  productController.deleteProduct
 );
+
+
 
 export default router;
